@@ -1,5 +1,9 @@
 # myeq
 
+Simple EQ generator for EqualizerAPO. Creates an `EqualizerAPO GraphicEQ` settings based on your hearings. Should be used in conjunction with [EqualizerAPO](https://sourceforge.net/projects/equalizerapo/).
+
+Inspired by [AutoEq](https://github.com/jaakkopasanen/AutoEq) project.
+
 ## Project setup
 ```
 npm install

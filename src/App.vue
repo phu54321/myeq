@@ -2,14 +2,26 @@
 #app
   HzPlayer(:frequency='frequency', :gain='currentGain', :pan='1')
 
+  h2
+    a(href='.') Refresh
+    | &nbsp;if no sound is heard!
+
   ul.usage
-    li ←/→ : Lower/Raise decibel by .1db
+    li ←/→ : Lower/Raise current band by 0.1db
+    li -/+ : Lower/raise all band by 0.1db
+    li ---------------------------------------------------
     li ↑/↓ : Go 1 band up/down
-    li S : Double band count
     li [Space] : Select random band
     li L: Set lower audible frequency limit
     li H: Set higher audible frequency limit
-  // HzPlayer(:frequency='baseFrequency', :gain='baseGain', :pan='0')
+    li ---------------------------------------------------
+    li S : Double band count
+    li ---------------------------------------------------
+    li
+      b Modify each band levels until all frequencies are heard at the same level
+
+  hr
+
   table.freqTable
     tr
       th Frequency
@@ -131,6 +143,8 @@ export default class App extends Vue {
     const keyS = 83
     const keyL = 76
     const keyH = 72
+    const keyMinus = 189
+    const keyPlus = 187
 
     const { eq, frequency } = this
     const currentDecibel = getEqDecibelForFrequency(eq, frequency)
@@ -180,6 +194,15 @@ export default class App extends Vue {
       case keyH:
         this.currentHigherFreqIndex = this.currentBandIndex
         break
+
+      case keyMinus:
+      case keyPlus:
+        const addition = (event.keyCode === keyPlus) ? 0.1 : -0.1
+        for (const freq of generateBandEqFrequencies(this.currentBandNum)) {
+          eq.set(freq, roundTo01(getEqDecibelForFrequency(eq, freq) + addition))
+        }
+        this.recomputeCounter++
+        break
     }
 
   }
@@ -187,7 +210,7 @@ export default class App extends Vue {
 </script>
 <style lang="stylus">
 #app
-  font-family 'Avenir', Helvetica, Arial, sans-serif
+  font-family Helvetica, Arial, sans-serif
   color #2c3e50
   margin .5em
 
@@ -196,6 +219,7 @@ export default class App extends Vue {
   td, th
     border 1px solid black
     padding .1em .5em
+    font-size .8em
 
   tr.nonAudible {
     td {
@@ -207,4 +231,7 @@ export default class App extends Vue {
     font-weight bold
     color #f00
   }
+
+h3
+  font-style italic
 </style>

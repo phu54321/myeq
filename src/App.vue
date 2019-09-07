@@ -1,12 +1,23 @@
 <template lang='pug'>
 #app
   HzPlayer(:frequency='frequency', :gain='currentGain', :pan='1')
+
+  ul.usage
+    li ←/→ : Lower/Raise decibel by .1db
+    li ↑/↓ : Go 1 band up/down
+    li S : Double band count
+    li [Space] : Select random band
+    li L: Set lower audible frequency limit
+    li H: Set higher audible frequency limit
   // HzPlayer(:frequency='baseFrequency', :gain='baseGain', :pan='0')
   table.freqTable
     tr
       th Frequency
       th Decibel
-    tr(v-for='[freq, db] of currentEqPrintable')
+    tr(
+      v-for='([freq, db], index) of currentEqPrintable'
+      :class='{nonAudible: index < currentLowerFreqIndex || index > currentHigherFreqIndex, selected: index == currentBandIndex}'
+    )
       td {{freq}}Hz
       td {{db}}Db
 </template>
@@ -20,9 +31,17 @@ import { generateBandEqFrequencies } from './eq/bandeq'
 function expandBands (eq: GraphicEQ, bandn: number) {
   const freqs = generateBandEqFrequencies(bandn)
   for (const f of freqs) {
-    eq.set(f, getEqDecibelForFrequency(eq, f))
+    eq.set(f, roundTo01(getEqDecibelForFrequency(eq, f)))
   }
 }
+
+function roundTo01 (n: number): number {
+  n = Math.floor(n * 10 + .5) / 10
+  if (n > 20) return 20
+  if (n < -20) return -20
+  return n
+}
+
 
 @Component({
   components: {
@@ -35,6 +54,8 @@ export default class App extends Vue {
   private recomputeCounter = 0
   private currentBandNum = 5
   private currentBandIndex = 2
+  private currentLowerFreqIndex = 0
+  private currentHigherFreqIndex = this.currentBandNum - 1
 
   get frequency () {
     // tslint:disable-next-line:no-unused-expression
@@ -83,32 +104,37 @@ export default class App extends Vue {
     const keyRight = 39
     const keySpace = 32
     const keyS = 83
+    const keyL = 76
+    const keyH = 72
 
     const { eq, frequency } = this
     const currentDecibel = getEqDecibelForFrequency(eq, frequency)
     switch (event.keyCode) {
-      case keyUp:
-        eq.set(frequency, currentDecibel + .1)
-        this.recomputeCounter++
-        break
-
-      case keyDown:
-        eq.set(frequency, currentDecibel - .1)
+      case keyRight:
+        eq.set(frequency, roundTo01(currentDecibel + .1))
         this.recomputeCounter++
         break
 
       case keyLeft:
+        eq.set(frequency, roundTo01(currentDecibel - .1))
+        this.recomputeCounter++
+        break
+
+      case keyUp:
         this.currentBandIndex = Math.max(0, this.currentBandIndex - 1)
         this.recomputeCounter++
         break
 
-      case keyRight:
+      case keyDown:
         this.currentBandIndex = Math.min(this.currentBandNum - 1, this.currentBandIndex + 1)
         this.recomputeCounter++
         break
 
       case keySpace:
-        this.currentBandIndex = Math.floor(Math.random() * this.currentBandNum)
+        this.currentBandIndex = (
+          Math.floor(Math.random() * (this.currentHigherFreqIndex - this.currentLowerFreqIndex + 1))
+          + this.currentLowerFreqIndex
+        )
         this.recomputeCounter++
         break
 
@@ -116,8 +142,18 @@ export default class App extends Vue {
         const newBandN = (this.currentBandNum - 1) * 2 + 1
         expandBands(eq, newBandN)
         this.currentBandNum = newBandN
-        this.currentBandIndex = this.currentBandIndex * 2
+        this.currentBandIndex *= 2
+        this.currentLowerFreqIndex *= 2
+        this.currentHigherFreqIndex *= 2
         this.recomputeCounter++
+        break
+
+      case keyL:
+        this.currentLowerFreqIndex = this.currentBandIndex
+        break
+
+      case keyH:
+        this.currentHigherFreqIndex = this.currentBandIndex
         break
     }
 
@@ -135,4 +171,15 @@ export default class App extends Vue {
   td, th
     border 1px solid black
     padding .5em
+
+  tr.nonAudible {
+    td {
+      background-color: #aaa
+    }
+  }
+
+  tr.selected {
+    font-weight bold
+    color #ff3333
+  }
 </style>

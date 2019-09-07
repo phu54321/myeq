@@ -1,13 +1,14 @@
 <template lang='pug'>
 #app
   HzPlayer(v-if='shouldPlay', :frequency='frequency', :gain='currentGain')
-
   h2
     button(@click='shouldPlay = true') Start sound
+    button(@click='shouldPlay = false') Stop sound
 
   ul.usage
     li ←/→ : Lower/Raise current band by 0.1db
     li -/+ : Lower/raise all band by 0.1db
+    li C: Compare with center band
     li ---------------------------------------------------
     li ↑/↓ : Go 1 band up/down
     li [Space] : Select random band
@@ -52,8 +53,8 @@ function expandBands (eq: GraphicEQ, bandn: number) {
 
 function roundTo01 (n: number): number {
   n = Math.floor(n * 10 + .5) / 10
-  if (n > 20) return 12
-  if (n < -20) return -12
+  if (n > 12) return 12
+  if (n < -12) return -12
   return n
 }
 
@@ -72,10 +73,12 @@ export default class App extends Vue {
   private currentLowerFreqIndex = 0
   private currentHigherFreqIndex = this.currentBandNum - 1
   private shouldPlay = false
+  private useCenterFreq = false
 
   get frequency () {
     // tslint:disable-next-line:no-unused-expression
     this.recomputeCounter
+    if (this.useCenterFreq) return 632
     return generateBandEqFrequencies(this.currentBandNum)[this.currentBandIndex]
   }
 
@@ -121,11 +124,13 @@ export default class App extends Vue {
 
   // Lifecycles
   public created () {
-    window.addEventListener('keydown', this.onKey)
+    window.addEventListener('keydown', this.onKeyDown)
+    window.addEventListener('keyup', this.onKeyUp)
   }
 
   public beforeDestroy () {
-    window.removeEventListener('keydown', this.onKey)
+    window.removeEventListener('keydown', this.onKeyDown)
+    window.removeEventListener('keyup', this.onKeyUp)
   }
 
   public mounted () {
@@ -134,7 +139,7 @@ export default class App extends Vue {
   }
 
   // EQ
-  public onKey (event: KeyboardEvent) {
+  public onKeyDown (event: KeyboardEvent) {
     const keyUp = 38
     const keyDown = 40
     const keyLeft = 37
@@ -145,6 +150,7 @@ export default class App extends Vue {
     const keyH = 72
     const keyMinus = 189
     const keyPlus = 187
+    const keyC = 67
 
     const { eq, frequency } = this
     const currentDecibel = getEqDecibelForFrequency(eq, frequency)
@@ -203,8 +209,18 @@ export default class App extends Vue {
         }
         this.recomputeCounter++
         break
-    }
 
+      case keyC:
+        this.useCenterFreq = true
+        break
+    }
+  }
+
+  public onKeyUp (event: KeyboardEvent) {
+    const keyC = 67
+    if (event.keyCode === keyC) {
+      this.useCenterFreq = false
+    }
   }
 }
 </script>

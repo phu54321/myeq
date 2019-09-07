@@ -44,10 +44,14 @@ export function getEqDecibelForFrequency (eq: GraphicEQ, freq: number): number {
   const leftIndex = rightIndex - 1
   const leftDecibel = eq.get(frequencies[leftIndex])!
   const rightDecibel = eq.get(frequencies[rightIndex])!
-  const leftFreq = frequencies[leftIndex]
-  const rightFreq = frequencies[rightIndex]
+  const leftFreqLog = Math.log(frequencies[leftIndex])
+  const rightFreqLog = Math.log(frequencies[rightIndex])
+  const thisFreqLog = Math.log(freq)
 
-  return (rightDecibel * (freq - leftFreq) + leftDecibel * (rightFreq - freq)) / (rightFreq - leftFreq)
+  return (
+    (rightDecibel * (thisFreqLog - leftFreqLog) + leftDecibel * (rightFreqLog - thisFreqLog))
+    / (rightFreqLog - leftFreqLog)
+  )
 }
 
 export function getEqGainForFrequency (eq: GraphicEQ, freq: number) {

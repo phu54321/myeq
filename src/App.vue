@@ -1,10 +1,9 @@
 <template lang='pug'>
 #app
-  HzPlayer(:frequency='frequency', :gain='currentGain', :pan='1')
+  HzPlayer(v-if='shouldPlay', :frequency='frequency', :gain='currentGain')
 
   h2
-    a(href='.') Refresh
-    | &nbsp;if no sound is heard!
+    button(@click='shouldPlay = true') Start sound
 
   ul.usage
     li ←/→ : Lower/Raise current band by 0.1db
@@ -72,6 +71,7 @@ export default class App extends Vue {
   private currentBandIndex = 2
   private currentLowerFreqIndex = 0
   private currentHigherFreqIndex = this.currentBandNum - 1
+  private shouldPlay = false
 
   get frequency () {
     // tslint:disable-next-line:no-unused-expression

@@ -20,12 +20,16 @@
     )
       td {{freq}}Hz
       td {{db}}Db
+
+  p
+    | EqualizerAPO string:
+    input(v-model='eqString')
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import HzPlayer from './components/HzPlayer.vue'
-import { getEqGainForFrequency, GraphicEQ, getEqDecibelForFrequency } from './eq/eq'
+import { getEqGainForFrequency, GraphicEQ, getEqDecibelForFrequency, parseGraphicEQ } from './eq/eq'
 import { generateBandEqFrequencies } from './eq/bandeq'
 
 function expandBands (eq: GraphicEQ, bandn: number) {
@@ -80,6 +84,27 @@ export default class App extends Vue {
     }
     ret.sort((a, b) => (a[0] - b[0]))
     return ret
+  }
+
+  get eqString () {
+    // GraphicEQ: 20 0; 22 5.6; 23 5.2; 25 4.6; 26 4.3; 28 3.7; 30 3.1; 32 2.7; 35 2; 37 1.7
+    return 'GraphicEQ: ' + this.currentEqPrintable.map(([freq, db]) => `${freq} ${db}`).join('; ')
+  }
+
+  set eqString (s: string) {
+    const newEq = parseGraphicEQ(s)
+    if (newEq) {
+      const newBandNum = newEq.size
+      this.eq.clear()
+      for (const freq of generateBandEqFrequencies(newBandNum)) {
+        this.eq.set(freq, getEqDecibelForFrequency(newEq, freq))
+      }
+      this.currentBandNum = newBandNum
+      this.currentBandIndex = Math.floor(newBandNum / 2)
+      this.currentLowerFreqIndex = 0
+      this.currentHigherFreqIndex = newBandNum - 1
+      this.recomputeCounter++
+    }
   }
 
   // Lifecycles
@@ -174,12 +199,12 @@ export default class App extends Vue {
 
   tr.nonAudible {
     td {
-      background-color: #aaa
+      background-color: #ccc
     }
   }
 
   tr.selected {
     font-weight bold
-    color #ff3333
+    color #f00
   }
 </style>

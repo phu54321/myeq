@@ -1,5 +1,5 @@
 <template lang='pug'>
-div
+.invisible
 </template>
 
 <script lang="ts">
@@ -53,3 +53,9 @@ export default class HzPlayer extends Vue {
   }
 }
 </script>
+
+<style scoped>
+.invisible {
+  display: none;
+}
+</style>

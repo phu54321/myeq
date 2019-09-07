@@ -1,4 +1,4 @@
-type GraphicEQ = Map<number, number>
+export type GraphicEQ = Map<number, number>
 
 function parseGraphicEQ (str: string): GraphicEQ | null {
   // Example string: GraphicEQ: 20 0; 22 5.6; 23 5.2; 25 4.6; 26 4.3; 28 3.7; 30 3.1; 32 2.7; 35 2; 37 1.7
@@ -25,7 +25,7 @@ function getGainFromDecibel (decibel: number) {
 }
 
 export function getEqDecibelForFrequency (eq: GraphicEQ, freq: number): number {
-  if (eq.size === 0) return getGainFromDecibel(0)
+  if (eq.size === 0) return 0
 
   const frequencies = Array.from(eq.keys())
   frequencies.sort((a, b) => a - b)
@@ -47,8 +47,7 @@ export function getEqDecibelForFrequency (eq: GraphicEQ, freq: number): number {
   const leftFreq = frequencies[leftIndex]
   const rightFreq = frequencies[rightIndex]
 
-  const thisDecibel = (rightDecibel * (freq - leftFreq) + leftDecibel * (rightFreq - freq)) / (rightFreq - leftFreq)
-  return getGainFromDecibel(thisDecibel)
+  return (rightDecibel * (freq - leftFreq) + leftDecibel * (rightFreq - freq)) / (rightFreq - leftFreq)
 }
 
 export function getEqGainForFrequency (eq: GraphicEQ, freq: number) {

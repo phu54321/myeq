@@ -41,8 +41,8 @@ function expandBands (eq: GraphicEQ, bandn: number) {
 
 function roundTo01 (n: number): number {
   n = Math.floor(n * 10 + .5) / 10
-  if (n > 20) return 20
-  if (n < -20) return -20
+  if (n > 20) return 12
+  if (n < -20) return -12
   return n
 }
 
@@ -195,7 +195,7 @@ export default class App extends Vue {
   border-collapse: collapse
   td, th
     border 1px solid black
-    padding .5em
+    padding .1em .5em
 
   tr.nonAudible {
     td {
